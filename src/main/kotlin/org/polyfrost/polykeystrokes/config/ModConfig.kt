@@ -12,7 +12,7 @@ import org.polyfrost.polykeystrokes.gui.KeyElement
 import org.polyfrost.polykeystrokes.gui.KeystrokesHud
 import org.polyfrost.polykeystrokes.gui.LayoutPage
 
-object ModConfig : Config(Mod(PolyKeystrokes.NAME, ModType.UTIL_QOL, "/polynametag.svg"), "${PolyKeystrokes.MODID}.json") {
+object ModConfig : Config(Mod(PolyKeystrokes.NAME, ModType.UTIL_QOL, "/${PolyKeystrokes.MODID}.svg"), "${PolyKeystrokes.MODID}.json") {
 
     @HUD(name = "Keystrokes")
     var keystrokes = KeystrokesHud()

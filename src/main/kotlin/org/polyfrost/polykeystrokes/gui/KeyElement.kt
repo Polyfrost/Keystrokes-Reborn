@@ -14,7 +14,7 @@ class KeyElement {
     var height = 24
 
     fun draw(xOffset: Float, yOffset: Float, scale: Float) = ModConfig.keystrokes.run {
-        nanoVG(mcScaling = true) {
+        nanoVG {
             translate(xOffset + x, yOffset + y)
             scale(scale, scale)
             val radius = if (roundedCorner) cornerRadius else 0
@@ -22,6 +22,7 @@ class KeyElement {
             drawRoundedRect(0, 0, width, height, radius, color.rgb)
             if (border)
                 drawHollowRoundedRect(-borderSize, -borderSize, width + borderSize, height + borderSize, radius, borderColor.rgb, borderSize)
+            resetTransform()
         }
         val textColorX = if (keybind.isActive) pressedTextColor else textColor
         TextRenderer.drawScaledString(text, xOffset + x.toFloat(), yOffset + y.toFloat(), textColorX.rgb, TextRenderer.TextType.toType(textType), scale)
