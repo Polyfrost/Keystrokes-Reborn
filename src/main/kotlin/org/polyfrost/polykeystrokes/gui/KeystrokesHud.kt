@@ -43,18 +43,28 @@ class KeystrokesHud : Hud(true) {
     var keys = ArrayList<KeyElement>()
 
     override fun draw(matrices: UMatrixStack, x: Float, y: Float, scale: Float, example: Boolean) {
-
+        for (key in keys) {
+            key.draw(x, y, scale)
+        }
     }
 
-    override fun getWidth(scale: Float, example: Boolean) = keys.maxOf { key ->
-        key.x + key.width
-    } - keys.minOf { key ->
-        key.x
-    }.toFloat()
+    override fun getWidth(scale: Float, example: Boolean): Float {
+        keys ?: return 0f
+        if (keys.isEmpty()) return 0f
+        return keys.maxOf { key ->
+            key.x + key.width
+        } - keys.minOf { key ->
+            key.x
+        }.toFloat()
+    }
 
-    override fun getHeight(scale: Float, example: Boolean) = keys.maxOf { key ->
-        key.y + key.height
-    } - keys.minOf { key ->
-        key.y
-    }.toFloat()
+    override fun getHeight(scale: Float, example: Boolean): Float {
+        keys ?: return 0f
+        if (keys.isEmpty()) return 0f
+        return keys.maxOf { key ->
+            key.y + key.height
+        } - keys.minOf { key ->
+            key.y
+        }.toFloat()
+    }
 }

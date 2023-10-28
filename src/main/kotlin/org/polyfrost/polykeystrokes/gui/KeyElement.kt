@@ -23,7 +23,8 @@ class KeyElement {
             if (border)
                 drawHollowRoundedRect(-borderSize, -borderSize, width + borderSize, height + borderSize, radius, borderColor.rgb, borderSize)
         }
-        TextRenderer.drawScaledString(text, xOffset + x.toFloat(), yOffset + y.toFloat(), textColor.rgb, TextRenderer.TextType.toType(textType), scale)
+        val textColorX = if (keybind.isActive) pressedTextColor else textColor
+        TextRenderer.drawScaledString(text, xOffset + x.toFloat(), yOffset + y.toFloat(), textColorX.rgb, TextRenderer.TextType.toType(textType), scale)
     }
 
 }
