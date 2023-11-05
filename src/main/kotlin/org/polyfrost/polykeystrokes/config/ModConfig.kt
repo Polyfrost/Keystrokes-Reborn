@@ -3,14 +3,11 @@ package org.polyfrost.polykeystrokes.config
 import cc.polyfrost.oneconfig.config.Config
 import cc.polyfrost.oneconfig.config.annotations.Button
 import cc.polyfrost.oneconfig.config.annotations.HUD
-import cc.polyfrost.oneconfig.config.annotations.Page
 import cc.polyfrost.oneconfig.config.data.Mod
 import cc.polyfrost.oneconfig.config.data.ModType
-import cc.polyfrost.oneconfig.config.data.PageLocation
+import cc.polyfrost.oneconfig.libs.universal.UScreen
 import org.polyfrost.polykeystrokes.PolyKeystrokes
-import org.polyfrost.polykeystrokes.gui.KeyElement
-import org.polyfrost.polykeystrokes.gui.KeystrokesHud
-import org.polyfrost.polykeystrokes.gui.LayoutPage
+import org.polyfrost.polykeystrokes.gui.KeyEditorUI
 
 object ModConfig : Config(Mod(PolyKeystrokes.NAME, ModType.UTIL_QOL, "/${PolyKeystrokes.MODID}.svg"), "${PolyKeystrokes.MODID}.json") {
 
@@ -22,8 +19,10 @@ object ModConfig : Config(Mod(PolyKeystrokes.NAME, ModType.UTIL_QOL, "/${PolyKey
         keystrokes.keys.add(KeyElement())
     }
 
-    @Page(name = "Layout", location = PageLocation.TOP)
-    var layout = LayoutPage()
+    @Button(name = "Layout Menu", text = "Open", size = 2)
+    fun openLayoutMenu() {
+        UScreen.displayScreen(KeyEditorUI())
+    }
 
     init {
         initialize()
