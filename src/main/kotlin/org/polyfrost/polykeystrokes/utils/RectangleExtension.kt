@@ -3,7 +3,9 @@ package org.polyfrost.polykeystrokes.utils
 import org.polyfrost.polykeystrokes.config.KeyElement
 import java.awt.Rectangle
 
+val Rectangle.xCenter get() = x + width / 2
 val Rectangle.xRight get() = x + width
+val Rectangle.yCenter get() = y + height / 2
 val Rectangle.yBottom get() = y + height
 
 val List<KeyElement>.unionBox: Rectangle?

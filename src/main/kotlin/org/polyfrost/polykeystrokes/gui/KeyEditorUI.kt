@@ -6,54 +6,67 @@ import cc.polyfrost.oneconfig.libs.universal.UKeyboard
 import cc.polyfrost.oneconfig.libs.universal.UKeyboard.allowRepeatEvents
 import cc.polyfrost.oneconfig.libs.universal.UMatrixStack
 import cc.polyfrost.oneconfig.libs.universal.UScreen
-import cc.polyfrost.oneconfig.utils.dsl.drawLine
-import cc.polyfrost.oneconfig.utils.dsl.drawRect
-import cc.polyfrost.oneconfig.utils.dsl.nanoVG
 import cc.polyfrost.oneconfig.utils.gui.GuiUtils
-import org.polyfrost.polykeystrokes.config.ModConfig
-
-private const val SNAPPING_DISTANCE = 10
-private const val SELECTION_COLOR = 0x640000FF
-private val keys get() = ModConfig.keystrokes.keys
+import org.polyfrost.polykeystrokes.config.KeyElement
 
 class KeyEditorUI : UScreen(), GuiPause {
-    private var selected = KeyList()
-
-    override fun initScreen(width: Int, height: Int) {
-        super.initScreen(width, height)
-        allowRepeatEvents(true)
-    }
+    private var draggingState: DraggingState = DraggingState.None
+    private var selectedKeys = emptyList<KeyElement>()
 
     override fun onDrawScreen(matrixStack: UMatrixStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
         drawDefaultBackground()
 
         for (key in keys) {
-            key.drawEditing(selected = selected.contains(key))
+            key.drawEditing(selected = selectedKeys.contains(key))
         }
+
+        val drawable = draggingState as? DraggingState.DrawableState
+        drawable?.draw(mouseX, mouseY)
 
         super.onDrawScreen(matrixStack, mouseX, mouseY, partialTicks)
     }
-
-    private var draggingState: DraggingState = DraggingState.None
 
     override fun onMouseClicked(mouseX: Double, mouseY: Double, mouseButton: Int) {
         super.onMouseClicked(mouseX, mouseY, mouseButton)
         if (mouseButton != 0) return
 
+        findResizing(mouseX, mouseY)
+            ?: findDragging(mouseX, mouseY)
+            ?: startSelectionBox(mouseX, mouseY)
+    }
 
-        val keyClicked = keys.firstOrNull { key ->
+    private fun findResizing(mouseX: Double, mouseY: Double): Unit? {
+        val resizing = selectedKeys.firstOrNull { key ->
+            key.isResizeButtonHovered(mouseX, mouseY)
+        } ?: return null
+
+        draggingState = DraggingState.Resizing(
+            mouseX.toInt(), mouseY.toInt(),
+            excludeKeys = selectedKeys,
+            holding = resizing
+        )
+        return Unit
+    }
+
+    private fun findDragging(mouseX: Double, mouseY: Double): Unit? {
+        val dragged = keys.firstOrNull { key ->
             key.position.contains(mouseX, mouseY)
+        } ?: return null
+
+        if (dragged !in selectedKeys) {
+            selectedKeys = listOf(dragged)
         }
+        draggingState = DraggingState.Dragging(
+            mouseX.toInt(), mouseY.toInt(),
+            excludeKeys = selectedKeys,
+            dragging = dragged
+        )
+        return Unit
+    }
 
-        if (keyClicked == null) {
-            draggingState = DraggingState.Selecting(mouseX.toInt(), mouseY.toInt())
-            return
-        }
-
-        selected.clear()
-        selected.add(keyClicked)
-        draggingState = DraggingState.Dragging(mouseX.toInt(), mouseY.toInt())
-
+    private fun startSelectionBox(mouseX: Double, mouseY: Double) {
+        selectedKeys = emptyList()
+        draggingState = DraggingState.Selecting(mouseX.toInt(), mouseY.toInt())
     }
 
     override fun onMouseDragged(x: Double, y: Double, clickedButton: Int, timeSinceLastClick: Long) {
@@ -62,23 +75,22 @@ class KeyEditorUI : UScreen(), GuiPause {
 
         when (val state = draggingState) {
             is DraggingState.Dragging -> {
-                selected.moveBy((state.currentMouseX - x).toInt(), (state.currentMouseY - y).toInt())
-                state.currentMouseX = x.toInt()
-                state.currentMouseY = y.toInt()
+                val xChange = state.getSnappedXChange(x.toInt())
+                val yChange = state.getSnappedYChange(y.toInt())
+                selectedKeys.moveBy(xChange, yChange)
             }
 
-            is DraggingState.Selecting -> nanoVG(mcScaling = true) {
+            is DraggingState.Resizing -> {
+                val xChange = state.getSnappedXChange(x.toInt())
+                val yChange = state.getSnappedYChange(y.toInt())
+                selectedKeys.resizeBy(xChange, yChange)
+            }
+
+            is DraggingState.Selecting -> {
                 val selectionBox = state.getSelectionBox(x.toInt(), y.toInt())
-                drawRect(
-                    x = selectionBox.x,
-                    y = selectionBox.y,
-                    width = selectionBox.width,
-                    height = selectionBox.height,
-                    color = SELECTION_COLOR
-                )
-                selected = keys.filter { key ->
+                selectedKeys = keys.filter { key ->
                     key.position.intersects(selectionBox)
-                }.toHashSet()
+                }
             }
         }
     }
@@ -94,11 +106,16 @@ class KeyEditorUI : UScreen(), GuiPause {
         super.onKeyPressed(keyCode, typedChar, modifiers)
 
         when (keyCode) {
-            UKeyboard.KEY_UP -> selected.moveBy(0, -1)
-            UKeyboard.KEY_DOWN -> selected.moveBy(0, 1)
-            UKeyboard.KEY_LEFT -> selected.moveBy(-1, 0)
-            UKeyboard.KEY_RIGHT -> selected.moveBy(1, 0)
+            UKeyboard.KEY_UP -> selectedKeys.moveBy(0, -1)
+            UKeyboard.KEY_DOWN -> selectedKeys.moveBy(0, 1)
+            UKeyboard.KEY_LEFT -> selectedKeys.moveBy(-1, 0)
+            UKeyboard.KEY_RIGHT -> selectedKeys.moveBy(1, 0)
         }
+    }
+
+    override fun initScreen(width: Int, height: Int) {
+        super.initScreen(width, height)
+        allowRepeatEvents(true)
     }
 
     override fun onScreenClose() {
@@ -109,48 +126,4 @@ class KeyEditorUI : UScreen(), GuiPause {
     }
 
     override fun doesGuiPauseGame() = false
-}
-
-private const val LINE_COLOR = 0xFF8A2BE2.toInt()
-
-class SnappingLine(private val lineCenter: Float, left: Float, size: Float, multipleSides: Boolean) {
-    var distance = 0f
-    var position = 0f
-
-    init {
-        val center = left + size / 2f
-        val right = left + size
-        val leftDistance = Math.abs(lineCenter - left)
-        val centerDistance = Math.abs(lineCenter - center)
-        val rightDistance = Math.abs(lineCenter - right)
-        if (!multipleSides || leftDistance <= centerDistance && leftDistance <= rightDistance) {
-            distance = leftDistance
-            position = lineCenter
-        } else if (centerDistance <= rightDistance) {
-            distance = centerDistance
-            position = lineCenter - size / 2f
-        } else {
-            distance = rightDistance
-            position = lineCenter - size
-        }
-    }
-
-    fun drawLine(screenWidth: Int, screenHeight: Int, lineWidth: Float, isX: Boolean) = nanoVG(mcScaling = true) {
-        val lineStart = (lineCenter - lineWidth / 2f)
-        if (isX) drawLine(
-            x1 = lineStart,
-            y1 = 0f,
-            x2 = lineStart,
-            y2 = screenHeight,
-            width = lineWidth,
-            color = LINE_COLOR
-        ) else drawLine(
-            x1 = 0f,
-            y1 = lineStart,
-            x2 = screenWidth,
-            y2 = lineStart,
-            width = lineWidth,
-            color = LINE_COLOR
-        )
-    }
 }

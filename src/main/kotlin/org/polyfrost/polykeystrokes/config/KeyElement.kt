@@ -5,7 +5,6 @@ import cc.polyfrost.oneconfig.platform.GLPlatform
 import cc.polyfrost.oneconfig.platform.Platform
 import cc.polyfrost.oneconfig.renderer.TextRenderer
 import cc.polyfrost.oneconfig.utils.dsl.drawHollowRoundedRect
-import cc.polyfrost.oneconfig.utils.dsl.drawRect
 import cc.polyfrost.oneconfig.utils.dsl.drawRoundedRect
 import cc.polyfrost.oneconfig.utils.dsl.nanoVG
 import java.awt.Rectangle
