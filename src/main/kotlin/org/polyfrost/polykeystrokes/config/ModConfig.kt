@@ -14,6 +14,9 @@ object ModConfig : Config(Mod(PolyKeystrokes.NAME, ModType.UTIL_QOL, "/${PolyKey
     @HUD(name = "Keystrokes")
     var keystrokes = KeystrokesHud()
 
+    @HUD(name = "Mousestrokes")
+    var mousestrokes = MouseStrokes()
+
     @Button(name = "addKey", text = "click")
     fun addKey() {
         keystrokes.keys.add(KeyElement())
