@@ -98,6 +98,7 @@ class MouseStrokes : BasicHud() {
         return height
     }
 
+    @Exclude
     companion object {
         @Exclude
         private var sumX = 0f
