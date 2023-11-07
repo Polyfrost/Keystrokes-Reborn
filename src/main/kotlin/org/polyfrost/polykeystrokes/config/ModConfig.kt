@@ -9,17 +9,21 @@ import cc.polyfrost.oneconfig.libs.universal.UScreen
 import org.polyfrost.polykeystrokes.PolyKeystrokes
 import org.polyfrost.polykeystrokes.gui.KeyEditorUI
 
+val settings get() = ModConfig.keystrokes
+
 object ModConfig : Config(Mod(PolyKeystrokes.NAME, ModType.UTIL_QOL, "/${PolyKeystrokes.MODID}.svg"), "${PolyKeystrokes.MODID}.json") {
 
     @HUD(name = "Keystrokes")
     var keystrokes = KeystrokesHud()
 
-    @HUD(name = "Mousestrokes")
-    var mousestrokes = MouseStrokes()
-
-    @Button(name = "addKey", text = "click")
+    @Button(name = "add key", text = "click")
     fun addKey() {
-        keystrokes.keys.add(KeyElement())
+        keystrokes.elements.add(KeyElement())
+    }
+
+    @Button(name = "add mouse", text = "click")
+    fun addMouse() {
+        keystrokes.elements.add(MouseElement())
     }
 
     @Button(name = "Layout Menu", text = "Open", size = 2)

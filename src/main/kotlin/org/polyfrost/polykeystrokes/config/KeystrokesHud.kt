@@ -9,7 +9,7 @@ import cc.polyfrost.oneconfig.hud.Hud
 import cc.polyfrost.oneconfig.libs.universal.UGraphics
 import cc.polyfrost.oneconfig.libs.universal.UMatrixStack
 import cc.polyfrost.oneconfig.utils.dsl.*
-import org.polyfrost.polykeystrokes.utils.unionBox
+import org.polyfrost.polykeystrokes.util.IntRectangle
 
 class KeystrokesHud : Hud(true) {
     @Dropdown(name = "Text Type", options = ["No Shadow", "Shadow", "Full Shadow"])
@@ -42,10 +42,32 @@ class KeystrokesHud : Hud(true) {
     @Slider(name = "Corner radius", min = 0f, max = 10f)
     var cornerRadius = 2f
 
-    var keys = ArrayList<KeyElement>()
+    var elements = ArrayList<Element>()
+
+    @Suppress("USELESS_ELVIS") // getWidth and getHeight are called before keys init'd :skull:
+    val box: IntRectangle?
+        get() {
+            elements ?: return null
+
+            if (elements.isEmpty()) return null
+
+            val xLeft = elements.minOf { key ->
+                key.position.x
+            }
+            val yTop = elements.minOf { key ->
+                key.position.y
+            }
+            val xRight = elements.maxOf { key ->
+                key.position.xRight
+            }
+            val yBottom = elements.maxOf { key ->
+                key.position.yBottom
+            }
+            return IntRectangle(xLeft, yTop, xRight - xLeft, yBottom - yTop)
+        }
 
     override fun draw(matrices: UMatrixStack, x: Float, y: Float, scale: Float, example: Boolean) {
-        val keystrokesBox = keys.unionBox ?: return
+        val keystrokesBox = box ?: return
 
         nanoVG(mcScaling = true) {
             UGraphics.GL.pushMatrix()
@@ -54,7 +76,7 @@ class KeystrokesHud : Hud(true) {
             translate(x, y)
             scale(scale, scale)
 
-            for (key in keys) {
+            for (key in elements) {
                 key.draw(keystrokesBox.x, keystrokesBox.y)
             }
 
@@ -63,15 +85,13 @@ class KeystrokesHud : Hud(true) {
         }
     }
 
-    @Suppress("UNNECESSARY_SAFE_CALL") // getWidth is called before keys init'd :skull:
     override fun getWidth(scale: Float, example: Boolean): Float {
-        val width = keys?.unionBox?.width ?: return 0f
+        val width = box?.width ?: return 0f
         return width * scale
     }
 
-    @Suppress("UNNECESSARY_SAFE_CALL") // getHeight is called before keys init'd :skull:
     override fun getHeight(scale: Float, example: Boolean): Float {
-        val height = keys?.unionBox?.height ?: return 0f
+        val height = box?.height ?: return 0f
         return height * scale
     }
 }

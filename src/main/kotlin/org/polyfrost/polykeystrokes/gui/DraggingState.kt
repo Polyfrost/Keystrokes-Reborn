@@ -3,8 +3,8 @@ package org.polyfrost.polykeystrokes.gui
 import cc.polyfrost.oneconfig.utils.dsl.VG
 import cc.polyfrost.oneconfig.utils.dsl.drawRect
 import cc.polyfrost.oneconfig.utils.dsl.nanoVG
-import org.polyfrost.polykeystrokes.config.KeyElement
-import java.awt.Rectangle
+import org.polyfrost.polykeystrokes.config.Element
+import org.polyfrost.polykeystrokes.util.IntRectangle
 
 private const val SELECTION_COLOR = 0x640000FF
 
@@ -12,23 +12,23 @@ interface DraggingState {
     object None : DraggingState
 
     class Dragging(
-        currentMouseX: Int, currentMouseY: Int, excludeKeys: List<KeyElement>, dragging: KeyElement,
+        currentMouseX: Int, currentMouseY: Int, excludeKeys: ElementList, dragging: Element,
     ) : Snapping(currentMouseX, currentMouseY, excludeKeys, dragging)
 
     class Resizing(
-        currentMouseX: Int, currentMouseY: Int, excludeKeys: List<KeyElement>, holding: KeyElement,
+        currentMouseX: Int, currentMouseY: Int, excludeKeys: ElementList, holding: Element,
     ) : Snapping(currentMouseX, currentMouseY, excludeKeys, holding)
 
     class Selecting(
         private val clickedMouseX: Int,
         private val clickedMouseY: Int,
     ) : DrawableState {
-        fun getSelectionBox(currentMouseX: Int, currentMouseY: Int): Rectangle {
+        fun getSelectionBox(currentMouseX: Int, currentMouseY: Int): IntRectangle {
             val (xLeft, xRight) = sortLessToGreater(clickedMouseX, currentMouseX)
             val (yTop, yBottom) = sortLessToGreater(clickedMouseY, currentMouseY)
             val width = xRight - xLeft
             val height = yBottom - yTop
-            return Rectangle(xLeft, yTop, width, height)
+            return IntRectangle(xLeft, yTop, width, height)
         }
 
         override fun VG.draw(mouseX: Int, mouseY: Int) = with(getSelectionBox(mouseX, mouseY)) {

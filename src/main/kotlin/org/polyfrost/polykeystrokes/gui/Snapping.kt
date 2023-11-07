@@ -3,11 +3,7 @@ package org.polyfrost.polykeystrokes.gui
 import cc.polyfrost.oneconfig.libs.universal.UResolution
 import cc.polyfrost.oneconfig.utils.dsl.VG
 import cc.polyfrost.oneconfig.utils.dsl.drawLine
-import org.polyfrost.polykeystrokes.config.KeyElement
-import org.polyfrost.polykeystrokes.utils.xCenter
-import org.polyfrost.polykeystrokes.utils.xRight
-import org.polyfrost.polykeystrokes.utils.yBottom
-import org.polyfrost.polykeystrokes.utils.yCenter
+import org.polyfrost.polykeystrokes.config.Element
 
 private const val SNAP_RANGE = 1
 private const val LINE_COLOR = 0xFF8A2BE2.toInt()
@@ -16,14 +12,14 @@ private fun findSnap(value: Int, snaps: List<Int>) = snaps.find { snap ->
     val offset = (snap - value)
     offset in -SNAP_RANGE..SNAP_RANGE
 }
-
+// todo: someone rewrite this
 open class Snapping(
     private var currentMouseX: Int,
     private var currentMouseY: Int,
-    excludeKeys: KeyList,
-    private val dragged: KeyElement,
+    excludeKeys: ElementList,
+    private val dragged: Element,
 ) : DraggingState.DrawableState {
-    private val filteredKeys = keys - excludeKeys
+    private val filteredKeys = elements - excludeKeys
     private val xCenters = filteredKeys.map { key -> key.position.xCenter }
     private val xSides = filteredKeys.flatMap { key -> listOf(key.position.x, key.position.xRight) }
     private val yCenters = filteredKeys.map { key -> key.position.yCenter }
@@ -41,10 +37,26 @@ open class Snapping(
         return xChange
     }
 
+    fun getSnappedXRightChange(mouseX: Int): Int {
+        val snappedX = updateSnapWithX(mouseX, dragged.position.xRight, xSides)
+            ?: mouseX
+        val xChange = snappedX - currentMouseX
+        currentMouseX = snappedX
+        return xChange
+    }
+
     fun getSnappedYChange(mouseY: Int): Int {
         val snappedY = updateSnapWithY(mouseY, dragged.position.yCenter, yCenters)
             ?: updateSnapWithY(mouseY, dragged.position.y, ySides)
             ?: updateSnapWithY(mouseY, dragged.position.yBottom, ySides)
+            ?: mouseY
+        val yChange = snappedY - currentMouseY
+        currentMouseY = snappedY
+        return yChange
+    }
+
+    fun getSnappedYBottomChange(mouseY: Int): Int {
+        val snappedY = updateSnapWithY(mouseY, dragged.position.yBottom, ySides)
             ?: mouseY
         val yChange = snappedY - currentMouseY
         currentMouseY = snappedY
