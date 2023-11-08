@@ -6,6 +6,7 @@ import cc.polyfrost.oneconfig.utils.dsl.drawRect
 import cc.polyfrost.oneconfig.utils.dsl.nanoVG
 import org.polyfrost.polykeystrokes.config.Element
 import org.polyfrost.polykeystrokes.config.ModConfig
+import org.polyfrost.polykeystrokes.util.VGMatrixStack
 
 val elements: ElementList get() = ModConfig.keystrokes.elements
 
@@ -16,9 +17,9 @@ private const val SCALE_BUTTON_RADIUS_SQUARED = RESIZE_BUTTON_RADIUS * RESIZE_BU
 private const val RESIZE_BUTTON_COLOR = 0xC8008080.toInt()
 
 fun Element.isResizeButtonHovered(mouseX: Double, mouseY: Double): Boolean {
-    val deltaX = position.xRight - mouseX
-    val deltaY = position.yBottom - mouseY
-    val distanceSquared = deltaX * deltaX + deltaY * deltaY
+    val xDistance = position.xRight - mouseX
+    val yDistance = position.yBottom - mouseY
+    val distanceSquared = xDistance * xDistance + yDistance * yDistance
     return distanceSquared <= SCALE_BUTTON_RADIUS_SQUARED
 }
 
@@ -41,7 +42,7 @@ private const val SELECTED_COLOR = 0x3C008080
 private const val BORDER_COLOR = 0xFFFFFFFF.toInt()
 
 fun Element.drawEditing(selected: Boolean) = nanoVG(mcScaling = true) {
-    draw(0, 0)
+    draw(VGMatrixStack(mcScaling = true))
 
     drawHollowRoundedRect(
         x = position.x - 1,

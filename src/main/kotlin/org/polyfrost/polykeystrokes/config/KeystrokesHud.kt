@@ -6,10 +6,11 @@ import cc.polyfrost.oneconfig.config.annotations.Slider
 import cc.polyfrost.oneconfig.config.annotations.Switch
 import cc.polyfrost.oneconfig.config.core.OneColor
 import cc.polyfrost.oneconfig.hud.Hud
-import cc.polyfrost.oneconfig.libs.universal.UGraphics
+import cc.polyfrost.oneconfig.libs.universal.UGraphics.GL
 import cc.polyfrost.oneconfig.libs.universal.UMatrixStack
 import cc.polyfrost.oneconfig.utils.dsl.*
 import org.polyfrost.polykeystrokes.util.IntRectangle
+import org.polyfrost.polykeystrokes.util.VGMatrixStack
 
 class KeystrokesHud : Hud(true) {
     @Dropdown(name = "Text Type", options = ["No Shadow", "Shadow", "Full Shadow"])
@@ -45,7 +46,7 @@ class KeystrokesHud : Hud(true) {
     var elements = ArrayList<Element>()
 
     @Suppress("USELESS_ELVIS") // getWidth and getHeight are called before keys init'd :skull:
-    val box: IntRectangle?
+    private val box: IntRectangle?
         get() {
             elements ?: return null
 
@@ -69,20 +70,22 @@ class KeystrokesHud : Hud(true) {
     override fun draw(matrices: UMatrixStack, x: Float, y: Float, scale: Float, example: Boolean) {
         val keystrokesBox = box ?: return
 
-        nanoVG(mcScaling = true) {
-            UGraphics.GL.pushMatrix()
-            UGraphics.GL.translate(x, y, 0f)
-            UGraphics.GL.scale(scale, scale, 1f)
+        GL.pushMatrix()
+        GL.translate(x, y, 0f)
+        GL.scale(scale, scale, 1f)
+        GL.translate(-keystrokesBox.x.toFloat(), -keystrokesBox.y.toFloat(), 0f)
+
+        val vgMatrixStack = VGMatrixStack(mcScaling = true) {
             translate(x, y)
             scale(scale, scale)
-
-            for (key in elements) {
-                key.draw(keystrokesBox.x, keystrokesBox.y)
-            }
-
-            resetTransform()
-            UGraphics.GL.popMatrix()
+            translate(-keystrokesBox.x.toFloat(), -keystrokesBox.y.toFloat())
         }
+
+        for (key in elements) {
+            key.draw(vgMatrixStack)
+        }
+
+        GL.popMatrix()
     }
 
     override fun getWidth(scale: Float, example: Boolean): Float {

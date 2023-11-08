@@ -6,19 +6,23 @@ import cc.polyfrost.oneconfig.libs.universal.UKeyboard
 import cc.polyfrost.oneconfig.libs.universal.UKeyboard.allowRepeatEvents
 import cc.polyfrost.oneconfig.libs.universal.UMatrixStack
 import cc.polyfrost.oneconfig.libs.universal.UScreen
+import cc.polyfrost.oneconfig.utils.InputHandler
 import cc.polyfrost.oneconfig.utils.gui.GuiUtils
 import org.polyfrost.polykeystrokes.config.Element
 
 class KeyEditorUI : UScreen(), GuiPause {
     private var draggingState: DraggingState = DraggingState.None
     private var selectedKeys = emptyList<Element>()
-
+    private val inputHandler = InputHandler()
     override fun onDrawScreen(matrixStack: UMatrixStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
         drawDefaultBackground()
 
         for (key in elements) {
             key.drawEditing(selected = selectedKeys.contains(key))
         }
+
+        if (inputHandler.isMouseDown)
+            onDrag(mouseX, mouseY)
 
         val drawable = draggingState as? DraggingState.DrawableState
         drawable?.draw(mouseX, mouseY)
@@ -74,25 +78,22 @@ class KeyEditorUI : UScreen(), GuiPause {
         draggingState = DraggingState.Selecting(mouseX.toInt(), mouseY.toInt())
     }
 
-    override fun onMouseDragged(x: Double, y: Double, clickedButton: Int, timeSinceLastClick: Long) {
-        super.onMouseDragged(x, y, clickedButton, timeSinceLastClick)
-        if (clickedButton != 0) return
-
+    fun onDrag(x: Int, y: Int) {
         when (val state = draggingState) {
             is DraggingState.Dragging -> {
-                val xChange = state.getSnappedXChange(x.toInt())
-                val yChange = state.getSnappedYChange(y.toInt())
+                val xChange = state.getSnappedXChange(x)
+                val yChange = state.getSnappedYChange(y)
                 selectedKeys.moveBy(xChange, yChange)
             }
 
             is DraggingState.Resizing -> {
-                val xChange = state.getSnappedXRightChange(x.toInt())
-                val yChange = state.getSnappedYBottomChange(y.toInt())
+                val xChange = state.getSnappedXRightChange(x)
+                val yChange = state.getSnappedYBottomChange(y)
                 selectedKeys.resizeBy(xChange, yChange)
             }
 
             is DraggingState.Selecting -> {
-                val selectionBox = state.getSelectionBox(x.toInt(), y.toInt())
+                val selectionBox = state.getSelectionBox(x, y)
                 selectedKeys = elements.filter { key ->
                     key.position intersects selectionBox
                 }

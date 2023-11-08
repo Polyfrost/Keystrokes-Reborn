@@ -1,20 +1,33 @@
 package org.polyfrost.polykeystrokes.util
 
-import net.minecraftforge.client.event.MouseEvent
-import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import cc.polyfrost.oneconfig.events.EventManager
+import cc.polyfrost.oneconfig.events.event.RenderEvent
+import cc.polyfrost.oneconfig.events.event.Stage
+import cc.polyfrost.oneconfig.libs.eventbus.Subscribe
+import cc.polyfrost.oneconfig.platform.Platform
+import cc.polyfrost.oneconfig.utils.InputHandler
+import cc.polyfrost.oneconfig.utils.gui.GuiUtils
 
 object MouseUtils {
     var deltaX: Int = 0
     var deltaY: Int = 0
+    private var lastX: Int = 0
+    private var lastY: Int = 0
 
     init {
-        MinecraftForge.EVENT_BUS.register(this)
+        EventManager.INSTANCE.register(this)
     }
 
-    @SubscribeEvent
-    fun onMouse(e: MouseEvent) {
-        deltaX = e.dx
-        deltaY = e.dy
+    @Subscribe
+    fun onMouse(e: RenderEvent) {
+        if (e.stage == Stage.END) return
+        val mouseX = Platform.getMousePlatform().mouseX.toInt()
+        val mouseY = Platform.getMousePlatform().mouseY.toInt()
+        deltaX = mouseX - lastX
+        deltaY = mouseY - lastY
+        lastX = mouseX
+        lastY = mouseY
     }
+
+    val InputHandler.isFirstClicked get() = !GuiUtils.wasMouseDown() && isMouseDown
 }
