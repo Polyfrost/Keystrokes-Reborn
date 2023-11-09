@@ -9,6 +9,7 @@ import cc.polyfrost.oneconfig.hud.Hud
 import cc.polyfrost.oneconfig.libs.universal.UGraphics.GL
 import cc.polyfrost.oneconfig.libs.universal.UMatrixStack
 import cc.polyfrost.oneconfig.utils.dsl.*
+import org.polyfrost.polykeystrokes.config.ModConfig.elements
 import org.polyfrost.polykeystrokes.util.IntRectangle
 import org.polyfrost.polykeystrokes.util.VGMatrixStack
 
@@ -43,27 +44,18 @@ class KeystrokesHud : Hud(true) {
     @Slider(name = "Corner radius", min = 0f, max = 10f)
     var cornerRadius = 2f
 
-    var elements = ArrayList<Element>()
+    var keys = ArrayList<KeyElement>()
 
     @Suppress("USELESS_ELVIS") // getWidth and getHeight are called before keys init'd :skull:
     private val box: IntRectangle?
         get() {
-            elements ?: return null
-
+            keys ?: return null
             if (elements.isEmpty()) return null
 
-            val xLeft = elements.minOf { key ->
-                key.position.x
-            }
-            val yTop = elements.minOf { key ->
-                key.position.y
-            }
-            val xRight = elements.maxOf { key ->
-                key.position.xRight
-            }
-            val yBottom = elements.maxOf { key ->
-                key.position.yBottom
-            }
+            val xLeft = elements.minOf { it.position.x }
+            val yTop = elements.minOf { it.position.y }
+            val xRight = elements.maxOf { it.position.xRight }
+            val yBottom = elements.maxOf { it.position.yBottom }
             return IntRectangle(xLeft, yTop, xRight - xLeft, yBottom - yTop)
         }
 

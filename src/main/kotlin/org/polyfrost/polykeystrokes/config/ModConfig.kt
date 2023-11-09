@@ -16,14 +16,14 @@ object ModConfig : Config(Mod(PolyKeystrokes.NAME, ModType.UTIL_QOL, "/${PolyKey
     @HUD(name = "Keystrokes")
     var keystrokes = KeystrokesHud()
 
+    var mouse = MouseElement()
+
+    val elements: List<Element>
+        get() = keystrokes.keys + mouse
+
     @Button(name = "add key", text = "click")
     fun addKey() {
-        keystrokes.elements.add(KeyElement())
-    }
-
-    @Button(name = "add mouse", text = "click")
-    fun addMouse() {
-        keystrokes.elements.add(MouseElement())
+        keystrokes.keys.add(KeyElement())
     }
 
     @Button(name = "Layout Menu", text = "Open", size = 2)
