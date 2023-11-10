@@ -5,6 +5,5 @@ import org.polyfrost.polykeystrokes.util.VGMatrixStack
 
 interface Element {
     val position: IntRectangle
-
     fun draw(vg: VGMatrixStack)
 }

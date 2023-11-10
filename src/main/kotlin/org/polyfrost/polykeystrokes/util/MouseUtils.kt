@@ -23,8 +23,8 @@ object MouseUtils {
 
     @Suppress("unused")
     @Subscribe
-    fun onMouse(e: RenderEvent) {
-        if (e.stage == Stage.END) return
+    fun onMouse(event: RenderEvent) {
+        if (event.stage == Stage.END) return
         val mouseX = Platform.getMousePlatform().mouseX.toInt()
         val mouseY = Platform.getMousePlatform().mouseY.toInt()
         deltaX = mouseX - lastX

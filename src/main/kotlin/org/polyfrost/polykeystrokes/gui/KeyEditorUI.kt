@@ -59,26 +59,35 @@ class KeyEditorUI : UScreen(), GuiPause {
     }
 
     private fun onClicked(mouseX: Int, mouseY: Int) {
-        draggingState = (tryResizing(mouseX, mouseY)
-            ?: tryMoving(mouseX, mouseY))
-            ?: startSelectionBox(mouseX, mouseY)
+        draggingState = tryResizing(mouseX, mouseY)
+            ?: tryMovingSelection(mouseX, mouseY)
+                ?: tryMovingNew(mouseX, mouseY)
+                ?: startSelectionBox(mouseX, mouseY)
     }
 
-    private fun tryResizing(mouseX: Int, mouseY: Int): ResizingState? {
-        val selection = selection ?: return null
-        val hovered = selection.isResizeButtonHovered(mouseX, mouseY)
-        if (!hovered) return null
-        return ResizingState(selection)
-    }
+    private fun tryResizing(mouseX: Int, mouseY: Int): ResizingState? =
+        selection?.takeIf { selection ->
+            selection.isResizeButtonHovered(mouseX, mouseY)
+        }?.let { selection ->
+            ResizingState(selection)
+        }
 
-    private fun tryMoving(mouseX: Int, mouseY: Int): MovingState? {
-        val singleSelection = elements.firstOrNull { key ->
-            key.position.contains(mouseX, mouseY)
-        }?.let { Selection(it) } ?: return null
+    private fun tryMovingSelection(mouseX: Int, mouseY: Int): MovingState? =
+        selection?.takeIf { selection ->
+            selection.position.contains(mouseX, mouseY)
+        }?.let { selection ->
+            MovingState(mouseX, mouseY, selection)
+        }
 
-        selection = singleSelection
-        return MovingState(mouseX, mouseY, singleSelection)
-    }
+    private fun tryMovingNew(mouseX: Int, mouseY: Int): MovingState? =
+        elements.firstOrNull { element ->
+            element.position.contains(mouseX, mouseY)
+        }?.let { clickedElement ->
+            Selection(clickedElement)
+        }?.let { newSelection ->
+            selection = newSelection
+            MovingState(mouseX, mouseY, newSelection)
+        }
 
     private fun startSelectionBox(mouseX: Int, mouseY: Int): SelectingState {
         selection = null

@@ -15,6 +15,8 @@ value class SnappingLines(private val lines: Set<Int>) {
         val distance = snap - value
         distance in -SNAP_RANGE..SNAP_RANGE
     }
+
+    fun findSnapAndSet(value: Int, setter: (Int) -> Unit) = findSnap(value)?.also(setter)
 }
 
 fun VG.drawLines(lineX: Int?, lineY: Int?) {

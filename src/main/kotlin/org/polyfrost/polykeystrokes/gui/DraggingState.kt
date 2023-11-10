@@ -1,10 +1,11 @@
 package org.polyfrost.polykeystrokes.gui
 
+import cc.polyfrost.oneconfig.libs.universal.UResolution
 import cc.polyfrost.oneconfig.utils.dsl.VG
 import cc.polyfrost.oneconfig.utils.dsl.drawRect
 import cc.polyfrost.oneconfig.utils.dsl.nanoVG
 import org.polyfrost.polykeystrokes.config.Element
-import org.polyfrost.polykeystrokes.config.ModConfig
+import org.polyfrost.polykeystrokes.config.ModConfig.elements
 import org.polyfrost.polykeystrokes.util.IntRectangle
 import org.polyfrost.polykeystrokes.util.MutableRectangle
 
@@ -20,7 +21,7 @@ class MovingState(
     mouseX: Int, mouseY: Int, selected: Selection,
 ) : DraggingState {
     private val selectedPos: MutableRectangle = selected.position
-    private val filteredKeys: List<Element> = ModConfig.elements - selected.elements
+    private val filteredKeys: List<Element> = elements - selected.elements
     private val xOffset: Int = mouseX - selectedPos.x
     private val yOffset: Int = mouseY - selectedPos.y
     private val xCenters = SnappingLines(filteredKeys.map { it.position.xCenter })
@@ -30,42 +31,46 @@ class MovingState(
     private var lineX: Int? = null
     private var lineY: Int? = null
 
-    fun move(mouseX: Int, mouseY: Int) {
-        selectedPos.x = mouseX - xOffset
-        lineX = with(selectedPos) {
-            xCenters.findSnap(xCenter)?.also { xCenter = it }
-                ?: xSides.findSnap(x)?.also { x = it }
-                ?: xSides.findSnap(xRight)?.also { xRight = it }
-        }
-        selectedPos.y = mouseY - yOffset
-        lineY = with(selectedPos) {
-            yCenters.findSnap(yCenter)?.also { yCenter = it }
-                ?: ySides.findSnap(y)?.also { y = it }
-                ?: ySides.findSnap(yBottom)?.also { yBottom = it }
-        }
+    fun move(mouseX: Int, mouseY: Int) = with(selectedPos) {
+        x = mouseX - xOffset
+
+        lineX = xCenters.findSnapAndSet(xCenter) { xCenter = it }
+            ?: xSides.findSnapAndSet(x) { x = it }
+                ?: xSides.findSnapAndSet(xRight) { xRight = it }
+
+        x = x.coerceAtLeast(0)
+        xRight = xRight.coerceAtMost(UResolution.scaledWidth)
+
+        y = mouseY - yOffset
+
+        lineY = yCenters.findSnapAndSet(yCenter) { yCenter = it }
+            ?: ySides.findSnapAndSet(y) { y = it }
+                ?: ySides.findSnapAndSet(yBottom) { yBottom = it }
+
+        y = y.coerceAtLeast(0)
+        yBottom = yBottom.coerceAtMost(UResolution.scaledHeight)
     }
+
 
     override fun VG.draw(mouseX: Int, mouseY: Int) = drawLines(lineX, lineY)
 }
 
 class ResizingState(selection: Selection) : DraggingState {
     private val selectionPos = selection.position
-    private val filteredKeys: List<Element> = ModConfig.elements - selection.elements
+    private val filteredKeys: List<Element> = elements - selection.elements
     private val xSides = SnappingLines(filteredKeys.flatMap { listOf(it.position.x, it.position.xRight) })
     private val ySides = SnappingLines(filteredKeys.flatMap { listOf(it.position.y, it.position.yBottom) })
     private var lineX: Int? = null
     private var lineY: Int? = null
 
-    fun resize(mouseX: Int, mouseY: Int) {
-        selectionPos.width = mouseX - selectionPos.x
-        lineX = with(selectionPos) {
-            xSides.findSnap(xRight)?.also { width = it - x }
-        }
+    fun resize(mouseX: Int, mouseY: Int) = with(selectionPos) {
+        width = mouseX - x
+        lineX = xSides.findSnapAndSet(xRight) { width = it - x }
+        width = width.coerceAtLeast(16)
 
-        selectionPos.height = mouseY - selectionPos.y
-        lineY = with(selectionPos) {
-            ySides.findSnap(yBottom)?.also { height = it - y }
-        }
+        height = mouseY - y
+        lineY = ySides.findSnapAndSet(yBottom) { height = it - y }
+        height = height.coerceAtLeast(16)
     }
 
     override fun VG.draw(mouseX: Int, mouseY: Int) = drawLines(lineX, lineY)
@@ -77,7 +82,7 @@ class SelectingState(
 ) : DraggingState {
     fun getSelection(mouseX: Int, mouseY: Int): Selection {
         val selectionBox = getSelectionBox(mouseX, mouseY)
-        return Selection(ModConfig.elements.filter { key ->
+        return Selection(elements.filter { key ->
             key.position intersects selectionBox
         })
     }
