@@ -16,7 +16,7 @@ class MouseElement : Element {
     val circleRadius = 5f
 
     @Slider(name = "Sensitivity", min = 1f, max = 100f)
-    var speed = 20f
+    var speed = 2f
 
     override fun draw(vg: VGMatrixStack) {
         val cornerRadius = if (settings.roundedCorner) settings.cornerRadius else 0

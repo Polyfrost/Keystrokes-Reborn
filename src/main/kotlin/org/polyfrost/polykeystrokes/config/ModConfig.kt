@@ -26,6 +26,11 @@ object ModConfig : Config(Mod(PolyKeystrokes.NAME, ModType.UTIL_QOL, "/${PolyKey
         keystrokes.keys.add(KeyElement())
     }
 
+    @Button(name = "clear all", text = "clear")
+    fun clearKeys() {
+        keystrokes.keys.clear()
+    }
+
     @Button(name = "Layout Menu", text = "Open", size = 2)
     fun openLayoutMenu() {
         UScreen.displayScreen(KeyEditorUI())

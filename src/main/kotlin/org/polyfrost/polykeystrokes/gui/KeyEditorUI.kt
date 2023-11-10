@@ -14,7 +14,7 @@ import org.polyfrost.polykeystrokes.util.MouseUtils.isFirstClicked
 
 class KeyEditorUI : UScreen(), GuiPause {
     private val inputHandler = InputHandler()
-    private var selectedKeys: ElementList = emptyList()
+    private var selection: ElementUnion? = null
     private var draggingState: DraggingState? = null
 
     init {
@@ -25,7 +25,7 @@ class KeyEditorUI : UScreen(), GuiPause {
         drawDefaultBackground()
 
         for (key in elements) {
-            key.drawEditing(selected = key in selectedKeys)
+            key.drawEditing()
         }
 
         when {
@@ -35,6 +35,7 @@ class KeyEditorUI : UScreen(), GuiPause {
         }
 
         draggingState?.draw(mouseX, mouseY)
+        selection?.draw()
 
         super.onDrawScreen(matrixStack, mouseX, mouseY, partialTicks)
     }
@@ -46,14 +47,10 @@ class KeyEditorUI : UScreen(), GuiPause {
     }
 
     private fun findResizing(mouseX: Int, mouseY: Int): DraggingState? {
-        val resizing = selectedKeys.firstOrNull { key ->
-            key.isResizeButtonHovered(mouseX, mouseY)
-        } ?: return null
-
-        return DraggingState.Resizing(
-            selectedKeys = selectedKeys,
-            resizing = resizing
-        )
+        val selection = selection ?: return null
+        val hovered = selection.isResizeButtonHovered(mouseX, mouseY)
+        if (!hovered) return null
+        return DraggingState.Resizing(selection)
     }
 
     private fun findDragging(mouseX: Int, mouseY: Int): DraggingState? {
@@ -61,23 +58,13 @@ class KeyEditorUI : UScreen(), GuiPause {
             key.position.contains(mouseX, mouseY)
         } ?: return null
 
-        if (clicked !in selectedKeys) {
-            if (isCtrlKeyDown()) {
-                selectedKeys += clicked
-            } else {
-                selectedKeys = listOf(clicked)
-            }
-        }
-
-        return DraggingState.Dragging(
-            mouseX, mouseY,
-            selectedKeys = selectedKeys,
-            dragging = clicked
-        )
+        val newSelection = ElementUnion(clicked)
+        selection = newSelection
+        return DraggingState.Dragging(mouseX, mouseY, newSelection)
     }
 
     private fun startSelectionBox(mouseX: Int, mouseY: Int): DraggingState {
-        selectedKeys = emptyList()
+        selection = null
         return DraggingState.Selecting(mouseX, mouseY)
     }
 
@@ -95,9 +82,9 @@ class KeyEditorUI : UScreen(), GuiPause {
 
             is DraggingState.Selecting -> {
                 val selectionBox = state.getSelectionBox(mouseX, mouseY)
-                selectedKeys = elements.filter { key ->
+                selection = ElementUnion(elements.filter { key ->
                     key.position intersects selectionBox
-                }
+                }.toSet())
             }
         }
     }
@@ -109,11 +96,13 @@ class KeyEditorUI : UScreen(), GuiPause {
     override fun onKeyPressed(keyCode: Int, typedChar: Char, modifiers: UKeyboard.Modifiers?) {
         super.onKeyPressed(keyCode, typedChar, modifiers)
 
+        val selection = selection ?: return
+
         when (keyCode) {
-            UKeyboard.KEY_UP -> selectedKeys.moveBy(0, -1)
-            UKeyboard.KEY_DOWN -> selectedKeys.moveBy(0, 1)
-            UKeyboard.KEY_LEFT -> selectedKeys.moveBy(-1, 0)
-            UKeyboard.KEY_RIGHT -> selectedKeys.moveBy(1, 0)
+            UKeyboard.KEY_UP -> selection.moveBy(0, -1)
+            UKeyboard.KEY_DOWN -> selection.moveBy(0, 1)
+            UKeyboard.KEY_LEFT -> selection.moveBy(-1, 0)
+            UKeyboard.KEY_RIGHT -> selection.moveBy(1, 0)
         }
     }
 
