@@ -8,9 +8,29 @@ import cc.polyfrost.oneconfig.libs.universal.UMatrixStack
 import cc.polyfrost.oneconfig.libs.universal.UResolution
 import cc.polyfrost.oneconfig.libs.universal.UScreen
 import cc.polyfrost.oneconfig.utils.InputHandler
+import cc.polyfrost.oneconfig.utils.dsl.drawHollowRoundedRect
+import cc.polyfrost.oneconfig.utils.dsl.nanoVG
 import cc.polyfrost.oneconfig.utils.gui.GuiUtils
+import org.polyfrost.polykeystrokes.config.Element
 import org.polyfrost.polykeystrokes.config.ModConfig.elements
 import org.polyfrost.polykeystrokes.util.MouseUtils.isFirstClicked
+import org.polyfrost.polykeystrokes.util.VGMatrixStack
+
+private const val BORDER_COLOR = 0xFFFFFFFF.toInt()
+
+private fun Element.drawEditing() = nanoVG(mcScaling = true) {
+    draw(VGMatrixStack(mcScaling = true))
+
+    drawHollowRoundedRect(
+        x = position.x - 1,
+        y = position.y - 1,
+        width = position.width + 1,
+        height = position.height + 1,
+        radius = 0,
+        color = BORDER_COLOR,
+        thickness = 1
+    )
+}
 
 class KeyEditorUI : UScreen(), GuiPause {
     private val inputHandler = InputHandler()

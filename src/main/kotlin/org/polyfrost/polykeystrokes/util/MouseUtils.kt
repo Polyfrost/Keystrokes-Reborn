@@ -9,15 +9,19 @@ import cc.polyfrost.oneconfig.utils.InputHandler
 import cc.polyfrost.oneconfig.utils.gui.GuiUtils
 
 object MouseUtils {
-    var deltaX: Int = 0
-    var deltaY: Int = 0
-    private var lastX: Int = 0
-    private var lastY: Int = 0
+    var deltaX = 0
+        private set
+    var deltaY = 0
+        private set
+
+    private var lastX = 0
+    private var lastY = 0
 
     init {
         EventManager.INSTANCE.register(this)
     }
 
+    @Suppress("unused")
     @Subscribe
     fun onMouse(e: RenderEvent) {
         if (e.stage == Stage.END) return

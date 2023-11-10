@@ -8,8 +8,6 @@ import org.polyfrost.polykeystrokes.config.ModConfig
 import org.polyfrost.polykeystrokes.util.IntRectangle
 import org.polyfrost.polykeystrokes.util.MutableRectangle
 
-private const val SELECTION_COLOR = 0x640000FF
-
 sealed interface DraggingState {
     fun draw(mouseX: Int, mouseY: Int) = nanoVG(mcScaling = true) {
         draw(mouseX, mouseY)
@@ -81,7 +79,7 @@ class SelectingState(
         val selectionBox = getSelectionBox(mouseX, mouseY)
         return Selection(ModConfig.elements.filter { key ->
             key.position intersects selectionBox
-        }.toSet())
+        })
     }
 
     private fun getSelectionBox(currentMouseX: Int, currentMouseY: Int): IntRectangle {
@@ -96,6 +94,8 @@ class SelectingState(
         drawRect(x, y, width, height, SELECTION_COLOR)
     }
 }
+
+private const val SELECTION_COLOR = 0x640000FF
 
 private fun sortLessToGreater(first: Int, second: Int) =
     if (first > second) second to first
