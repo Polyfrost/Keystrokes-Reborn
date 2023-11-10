@@ -5,8 +5,8 @@ import cc.polyfrost.oneconfig.utils.dsl.drawHollowRoundedRect
 import cc.polyfrost.oneconfig.utils.dsl.drawRect
 import cc.polyfrost.oneconfig.utils.dsl.nanoVG
 import org.polyfrost.polykeystrokes.config.Element
-import org.polyfrost.polykeystrokes.util.Rectangle
-import org.polyfrost.polykeystrokes.util.UnionRectangle
+import org.polyfrost.polykeystrokes.util.MutableRectangle
+import org.polyfrost.polykeystrokes.util.MutableUnionRectangle
 import org.polyfrost.polykeystrokes.util.VGMatrixStack
 
 private const val RESIZE_BUTTON_RADIUS = 4
@@ -15,13 +15,13 @@ private const val RESIZE_BUTTON_COLOR = 0xC8008080.toInt()
 private const val SELECTED_COLOR = 0x3C008080
 private const val BORDER_COLOR = 0xFFFFFFFF.toInt()
 
-class ElementUnion(
+class Selection(
     val elements: Set<Element>,
-    val position: Rectangle = UnionRectangle(elements.map { it.position }),
+    val position: MutableRectangle = MutableUnionRectangle(elements.map { it.position }),
 ) {
     constructor(element: Element) : this(setOf(element), element.position)
 
-    operator fun plus(element: Element) = ElementUnion(elements + element)
+    operator fun plus(element: Element) = Selection(elements + element)
 
     fun moveBy(x: Int, y: Int) {
         for (key in elements) {
@@ -61,10 +61,6 @@ class ElementUnion(
             color = RESIZE_BUTTON_COLOR
         )
     }
-}
-
-interface Selection {
-
 }
 
 fun Element.drawEditing() = nanoVG(mcScaling = true) {

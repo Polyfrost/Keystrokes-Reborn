@@ -8,9 +8,11 @@ import cc.polyfrost.oneconfig.config.core.OneColor
 import cc.polyfrost.oneconfig.hud.Hud
 import cc.polyfrost.oneconfig.libs.universal.UGraphics.GL
 import cc.polyfrost.oneconfig.libs.universal.UMatrixStack
-import cc.polyfrost.oneconfig.utils.dsl.*
+import cc.polyfrost.oneconfig.utils.dsl.scale
+import cc.polyfrost.oneconfig.utils.dsl.translate
 import org.polyfrost.polykeystrokes.config.ModConfig.elements
-import org.polyfrost.polykeystrokes.util.IntRectangle
+import org.polyfrost.polykeystrokes.util.Rectangle
+import org.polyfrost.polykeystrokes.util.UnionRectangle
 import org.polyfrost.polykeystrokes.util.VGMatrixStack
 
 class KeystrokesHud : Hud(true) {
@@ -47,16 +49,11 @@ class KeystrokesHud : Hud(true) {
     var keys = ArrayList<KeyElement>()
 
     @Suppress("USELESS_ELVIS") // getWidth and getHeight are called before keys init'd :skull:
-    private val box: IntRectangle?
+    private val box: Rectangle?
         get() {
             keys ?: return null
             if (elements.isEmpty()) return null
-
-            val xLeft = elements.minOf { it.position.x }
-            val yTop = elements.minOf { it.position.y }
-            val xRight = elements.maxOf { it.position.xRight }
-            val yBottom = elements.maxOf { it.position.yBottom }
-            return IntRectangle(xLeft, yTop, xRight - xLeft, yBottom - yTop)
+            return UnionRectangle(elements.map { it.position })
         }
 
     override fun draw(matrices: UMatrixStack, x: Float, y: Float, scale: Float, example: Boolean) {
