@@ -7,14 +7,14 @@ import cc.polyfrost.oneconfig.renderer.TextRenderer
 import cc.polyfrost.oneconfig.utils.dsl.drawHollowRoundedRect
 import cc.polyfrost.oneconfig.utils.dsl.drawRoundedRect
 import org.polyfrost.polykeystrokes.util.IntRectangle
-import org.polyfrost.polykeystrokes.util.VGMatrixStack
+import org.polyfrost.polykeystrokes.util.TransformedVG
 
 class KeyElement : Element {
     var text = "None"
     var keybind = OneKeyBind()
     override var position = IntRectangle(0, 0, 24, 24)
 
-    override fun draw(vg: VGMatrixStack) {
+    override fun draw(vg: TransformedVG) {
         val radius = if (settings.roundedCorner) settings.cornerRadius else 0
         val backgroundColor = if (keybind.isActive) settings.pressedBackgroundColor else settings.backgroundColor
 
@@ -43,8 +43,8 @@ class KeyElement : Element {
 
         Platform.getGLPlatform().drawCenteredText(
             text = text,
-            x = position.xCenter,
-            y = position.yCenter - 4,
+            x = position.xCenterFloat,
+            y = position.yCenterFloat - 4,
             color = textColor.rgb,
             textType = settings.textType
         )

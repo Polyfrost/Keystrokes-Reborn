@@ -3,10 +3,13 @@ package org.polyfrost.polykeystrokes.config
 import cc.polyfrost.oneconfig.config.Config
 import cc.polyfrost.oneconfig.config.annotations.Button
 import cc.polyfrost.oneconfig.config.annotations.HUD
+import cc.polyfrost.oneconfig.config.annotations.Page
 import cc.polyfrost.oneconfig.config.data.Mod
 import cc.polyfrost.oneconfig.config.data.ModType
+import cc.polyfrost.oneconfig.config.data.PageLocation
 import cc.polyfrost.oneconfig.libs.universal.UScreen
 import org.polyfrost.polykeystrokes.PolyKeystrokes
+import org.polyfrost.polykeystrokes.gui.KeyEditorPage
 import org.polyfrost.polykeystrokes.gui.KeyEditorUI
 
 val settings get() = ModConfig.keystrokes
@@ -31,10 +34,9 @@ object ModConfig : Config(Mod(PolyKeystrokes.NAME, ModType.UTIL_QOL, "/${PolyKey
         keystrokes.keys.clear()
     }
 
-    @Button(name = "Layout Menu", text = "Open", size = 2)
-    fun openLayoutMenu() {
-        UScreen.displayScreen(KeyEditorUI())
-    }
+    @Transient
+    @Page(name = "idkwtf", location = PageLocation.TOP)
+    val page = KeyEditorUI()
 
     init {
         initialize()

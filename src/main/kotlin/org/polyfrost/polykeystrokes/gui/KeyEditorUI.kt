@@ -1,25 +1,22 @@
 package org.polyfrost.polykeystrokes.gui
 
-import cc.polyfrost.oneconfig.gui.GuiPause
-import cc.polyfrost.oneconfig.gui.OneConfigGui
+import cc.polyfrost.oneconfig.gui.elements.BasicButton
+import cc.polyfrost.oneconfig.gui.pages.Page
 import cc.polyfrost.oneconfig.libs.universal.UKeyboard
-import cc.polyfrost.oneconfig.libs.universal.UKeyboard.allowRepeatEvents
-import cc.polyfrost.oneconfig.libs.universal.UMatrixStack
 import cc.polyfrost.oneconfig.libs.universal.UResolution
-import cc.polyfrost.oneconfig.libs.universal.UScreen
 import cc.polyfrost.oneconfig.utils.InputHandler
+import cc.polyfrost.oneconfig.utils.color.ColorPalette
 import cc.polyfrost.oneconfig.utils.dsl.drawHollowRoundedRect
 import cc.polyfrost.oneconfig.utils.dsl.nanoVG
-import cc.polyfrost.oneconfig.utils.gui.GuiUtils
 import org.polyfrost.polykeystrokes.config.Element
 import org.polyfrost.polykeystrokes.config.ModConfig.elements
 import org.polyfrost.polykeystrokes.util.MouseUtils.isFirstClicked
-import org.polyfrost.polykeystrokes.util.VGMatrixStack
+import org.polyfrost.polykeystrokes.util.TransformedVG
 
 private const val BORDER_COLOR = 0xFFFFFFFF.toInt()
 
 private fun Element.drawEditing() = nanoVG(mcScaling = true) {
-    draw(VGMatrixStack(mcScaling = true))
+    draw(TransformedVG(mcScaling = true))
 
     drawHollowRoundedRect(
         x = position.x - 1,
@@ -32,30 +29,26 @@ private fun Element.drawEditing() = nanoVG(mcScaling = true) {
     )
 }
 
-class KeyEditorUI : UScreen(), GuiPause {
-    private val inputHandler = InputHandler()
+class KeyEditorUI : Page("key editor?") {
     private var selection: Selection? = null
     private var draggingState: DraggingState? = null
 
-    init {
-        inputHandler.scale(UResolution.scaleFactor, UResolution.scaleFactor)
-    }
-
-    override fun onDrawScreen(matrixStack: UMatrixStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
-        drawDefaultBackground()
-
+    override fun draw(vg: Long, x: Int, y: Int, inputHandler: InputHandler) {
         for (key in elements) {
             key.drawEditing()
         }
+
+        val mouseX = (inputHandler.mouseX() / UResolution.scaleFactor).toInt()
+        val mouseY = (inputHandler.mouseY() / UResolution.scaleFactor).toInt()
+
         when {
             inputHandler.isFirstClicked -> onClicked(mouseX, mouseY)
             inputHandler.isMouseDown -> onDragged(mouseX, mouseY)
             inputHandler.isClicked -> onReleased()
         }
+
         selection?.draw()
         draggingState?.draw(mouseX, mouseY)
-
-        super.onDrawScreen(matrixStack, mouseX, mouseY, partialTicks)
     }
 
     private fun onClicked(mouseX: Int, mouseY: Int) {
@@ -105,8 +98,8 @@ class KeyEditorUI : UScreen(), GuiPause {
         draggingState = null
     }
 
-    override fun onKeyPressed(keyCode: Int, typedChar: Char, modifiers: UKeyboard.Modifiers?) {
-        super.onKeyPressed(keyCode, typedChar, modifiers)
+    override fun keyTyped(key: Char, keyCode: Int) {
+        super.keyTyped(key, keyCode)
 
         val selection = selection ?: return
         when (keyCode) {
@@ -116,17 +109,4 @@ class KeyEditorUI : UScreen(), GuiPause {
             UKeyboard.KEY_RIGHT -> selection.moveBy(1, 0)
         }
     }
-
-    override fun initScreen(width: Int, height: Int) {
-        super.initScreen(width, height)
-        allowRepeatEvents(true)
-    }
-
-    override fun onScreenClose() {
-        super.onScreenClose()
-        allowRepeatEvents(false)
-        GuiUtils.displayScreen(OneConfigGui.create())
-    }
-
-    override fun doesGuiPauseGame() = false
 }

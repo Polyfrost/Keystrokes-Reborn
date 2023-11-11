@@ -13,7 +13,7 @@ import cc.polyfrost.oneconfig.utils.dsl.translate
 import org.polyfrost.polykeystrokes.config.ModConfig.elements
 import org.polyfrost.polykeystrokes.util.Rectangle
 import org.polyfrost.polykeystrokes.util.UnionRectangle
-import org.polyfrost.polykeystrokes.util.VGMatrixStack
+import org.polyfrost.polykeystrokes.util.TransformedVG
 
 class KeystrokesHud : Hud(true) {
     @Dropdown(name = "Text Type", options = ["No Shadow", "Shadow", "Full Shadow"])
@@ -64,14 +64,14 @@ class KeystrokesHud : Hud(true) {
         GL.scale(scale, scale, 1f)
         GL.translate(-keystrokesBox.x.toFloat(), -keystrokesBox.y.toFloat(), 0f)
 
-        val vgMatrixStack = VGMatrixStack(mcScaling = true) {
+        val transformedVg = TransformedVG(mcScaling = true) {
             translate(x, y)
             scale(scale, scale)
             translate(-keystrokesBox.x.toFloat(), -keystrokesBox.y.toFloat())
         }
 
         for (key in elements) {
-            key.draw(vgMatrixStack)
+            key.draw(transformedVg)
         }
 
         GL.popMatrix()

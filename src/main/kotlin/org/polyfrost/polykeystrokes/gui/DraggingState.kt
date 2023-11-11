@@ -66,11 +66,9 @@ class ResizingState(selection: Selection) : DraggingState {
     fun resize(mouseX: Int, mouseY: Int) = with(selectionPos) {
         width = mouseX - x
         lineX = xSides.findSnapAndSet(xRight) { width = it - x }
-        width = width.coerceAtLeast(16)
 
         height = mouseY - y
         lineY = ySides.findSnapAndSet(yBottom) { height = it - y }
-        height = height.coerceAtLeast(16)
     }
 
     override fun VG.draw(mouseX: Int, mouseY: Int) = drawLines(lineX, lineY)

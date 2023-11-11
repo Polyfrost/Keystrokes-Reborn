@@ -6,8 +6,10 @@ interface Rectangle {
     val width: Int
     val height: Int
     val xCenter: Int get() = x + width / 2
+    val xCenterFloat: Float get() = x + width / 2f
     val xRight: Int get() = x + width
     val yCenter: Int get() = y + height / 2
+    val yCenterFloat: Float get() = y + height / 2f
     val yBottom: Int get() = y + height
 
     infix fun intersects(rectangle: Rectangle): Boolean =
@@ -55,12 +57,12 @@ class IntRectangle(
 ) : MutableRectangle {
     override var width: Int = width
         set(value) {
-            field = value.coerceAtLeast(10)
+            field = value.coerceAtLeast(16)
         }
 
     override var height: Int = height
         set(value) {
-            field = value.coerceAtLeast(10)
+            field = value.coerceAtLeast(16)
         }
 }
 
@@ -74,7 +76,7 @@ open class UnionRectangle(private val rectangles: List<Rectangle>) : Rectangle {
 class MutableUnionRectangle(
     rectangles: List<MutableRectangle>,
 ) : UnionRectangle(rectangles), MutableRectangle {
-    private val scaledRectangles: List<MutableRectangle> = rectangles.map {
+    private val scaledRectangles: List<ScaledRectangle> = rectangles.map {
         ScaledRectangle(original = it, scaleTo = this)
     }
 
@@ -89,24 +91,32 @@ class MutableUnionRectangle(
     override var width: Int
         get() = super.width
         set(value) {
-            scaledRectangles.forEach { it.width = value }
+            val coerced = value.coerceAtLeast(widthLimit)
+            scaledRectangles.forEach { it.width = coerced }
             x = x
         }
 
     override var height: Int
         get() = super.height
         set(value) {
-            scaledRectangles.forEach { it.height = value }
+            val coerced = value.coerceAtLeast(heightLimit)
+            scaledRectangles.forEach { it.height = coerced }
             y = y
         }
+
+    private val widthLimit: Int
+        get() = scaledRectangles.maxOfOrNull { it.widthLimit } ?: 0
+
+    val heightLimit: Int
+        get() = scaledRectangles.maxOfOrNull { it.heightLimit } ?: 0
 }
 
 private class ScaledRectangle(
     val original: MutableRectangle,
-    var xOffsetScale: Float,
-    var yOffsetScale: Float,
-    var widthScale: Float,
-    var heightScale: Float,
+    val xOffsetScale: Float,
+    val yOffsetScale: Float,
+    val widthScale: Float,
+    val heightScale: Float,
 ) : MutableRectangle {
     constructor(original: MutableRectangle, scaleTo: MutableRectangle) : this(
         original = original,
@@ -146,5 +156,8 @@ private class ScaledRectangle(
         set(value) {
             original.height = (value * heightScale).toInt()
         }
+
+    val widthLimit get() = (16 / widthScale).toInt()
+    val heightLimit get() = (16 / heightScale).toInt()
 }
 

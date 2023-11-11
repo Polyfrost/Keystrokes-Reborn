@@ -7,7 +7,7 @@ import cc.polyfrost.oneconfig.utils.dsl.drawHollowRoundedRect
 import cc.polyfrost.oneconfig.utils.dsl.drawRoundedRect
 import org.polyfrost.polykeystrokes.util.IntRectangle
 import org.polyfrost.polykeystrokes.util.MouseUtils
-import org.polyfrost.polykeystrokes.util.VGMatrixStack
+import org.polyfrost.polykeystrokes.util.TransformedVG
 
 class MouseElement : Element {
     override var position = IntRectangle(0, 0, 22, 22)
@@ -18,7 +18,7 @@ class MouseElement : Element {
     @Slider(name = "Sensitivity", min = 1f, max = 100f)
     var speed = 2f
 
-    override fun draw(vg: VGMatrixStack) {
+    override fun draw(vg: TransformedVG) {
         val cornerRadius = if (settings.roundedCorner) settings.cornerRadius else 0
         val sensitivity = speed / 100f
         val xOffset = (MouseUtils.deltaX * sensitivity).coerceIn(-0.5f, 0.5f) * position.width
