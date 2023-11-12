@@ -4,7 +4,9 @@ import cc.polyfrost.oneconfig.config.annotations.Color
 import cc.polyfrost.oneconfig.config.annotations.Slider
 import cc.polyfrost.oneconfig.config.annotations.Switch
 import cc.polyfrost.oneconfig.config.core.OneColor
+import cc.polyfrost.oneconfig.config.core.OneKeyBind
 import cc.polyfrost.oneconfig.hud.Hud
+import cc.polyfrost.oneconfig.libs.universal.UKeyboard
 import cc.polyfrost.oneconfig.libs.universal.UMatrixStack
 import cc.polyfrost.oneconfig.utils.dsl.nanoVG
 import cc.polyfrost.oneconfig.utils.dsl.scale
@@ -41,10 +43,67 @@ class KeystrokesHud : Hud(true) {
     @Slider(name = "Corner radius", min = 0f, max = 10f)
     var cornerRadius = 2f
 
-    @Slider(name = "Fade Time", min = 0f, max = 1000f)
+    @Slider(name = "Fade Time (milliseconds)", min = 0f, max = 1000f)
     var fadeTime = 500
 
-    var keys = ArrayList<KeyElement>()
+    var keys: ArrayList<KeyElement> = arrayListOf(
+        KeyElement().apply {
+            text = "W"
+            keybind = OneKeyBind(UKeyboard.KEY_W)
+            position.x = 106
+            position.y = 18
+            position.width = 32
+            position.height = 32
+        },
+        KeyElement().apply {
+            text = "A"
+            keybind = OneKeyBind(UKeyboard.KEY_A)
+            position.x = 72
+            position.y = 52
+            position.width = 32
+            position.height = 32
+        },
+        KeyElement().apply {
+            text = "S"
+            keybind = OneKeyBind(UKeyboard.KEY_S)
+            position.x = 106
+            position.y = 52
+            position.width = 32
+            position.height = 32
+        },
+        KeyElement().apply {
+            text = "D"
+            keybind = OneKeyBind(UKeyboard.KEY_D)
+            position.x = 140
+            position.y = 52
+            position.width = 32
+            position.height = 32
+        },
+        KeyElement().apply {
+            text = "LMB"
+            keybind = OneKeyBind(-100)
+            position.x = 72
+            position.y = 86
+            position.width = 49
+            position.height = 26
+        },
+        KeyElement().apply {
+            text = "RMB"
+            keybind = OneKeyBind(-99)
+            position.x = 123
+            position.y = 86
+            position.width = 49
+            position.height = 26
+        },
+        KeyElement().apply {
+            text = "SPACE"
+            keybind = OneKeyBind(UKeyboard.KEY_SPACE)
+            position.x = 72
+            position.y = 114
+            position.width = 100
+            position.height = 16
+        },
+    )
 
     @Suppress("USELESS_ELVIS") // getWidth and getHeight are called before keys init'd :skull:
     private val box: Rectangle?

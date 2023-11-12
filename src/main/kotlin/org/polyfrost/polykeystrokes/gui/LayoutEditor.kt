@@ -7,35 +7,20 @@ import cc.polyfrost.oneconfig.config.elements.BasicOption
 import cc.polyfrost.oneconfig.gui.elements.BasicButton
 import cc.polyfrost.oneconfig.gui.elements.IFocusable
 import cc.polyfrost.oneconfig.libs.universal.UKeyboard
+import cc.polyfrost.oneconfig.renderer.font.Fonts
 import cc.polyfrost.oneconfig.utils.InputHandler
 import cc.polyfrost.oneconfig.utils.color.ColorPalette
 import cc.polyfrost.oneconfig.utils.dsl.*
 import org.polyfrost.polykeystrokes.config.Element
 import org.polyfrost.polykeystrokes.config.KeyElement
 import org.polyfrost.polykeystrokes.config.ModConfig
-import org.polyfrost.polykeystrokes.util.MouseUtils.isFirstClicked
 import org.polyfrost.polykeystrokes.config.ModConfig.elements
-
-private const val BORDER_COLOR = 0xFFFFFFFF.toInt()
-
-private fun Element.drawEditing(vg: Long) = nanoVG(vg) {
-    draw()
-
-    drawHollowRoundedRect(
-        x = position.x - 0.25f,
-        y = position.y - 0.25f,
-        width = position.width + 0.25f,
-        height = position.height + 0.25f,
-        radius = 0,
-        color = BORDER_COLOR,
-        thickness = 0.5f
-    )
-}
+import org.polyfrost.polykeystrokes.util.MouseUtils.isFirstClicked
 
 class LayoutEditor(
     category: String,
     subcategory: String,
-) : BasicOption(null, null, "layout", "", category, subcategory, 1), IFocusable {
+) : BasicOption(null, null, "Layout", "", category, subcategory, 1), IFocusable {
     private val addButton = BasicButton(232, 32, "Add Key", BasicButton.ALIGNMENT_CENTER, ColorPalette.PRIMARY)
     private val deleteButton = BasicButton(232, 32, "Delete", BasicButton.ALIGNMENT_CENTER, ColorPalette.PRIMARY_DESTRUCTIVE)
     private var elementSettings: List<BasicOption>? = null
@@ -57,33 +42,32 @@ class LayoutEditor(
         }
     }
 
-    override fun getHeight() = 384
+    override fun getHeight() = 288
     override fun hasFocus() = true
 
     override fun draw(vg: Long, x: Int, y: Int, inputHandler: InputHandler) {
-        vg.drawHollowRoundedRect(
+        vg.drawRoundedRect(
             x = x + 496,
             y = y,
-            width = 480,
-            height = 480,
+            width = 496,
+            height = 384,
             radius = 10,
-            color = 0xFF555555.toInt(),
-            thickness = 1
+            color = 0xFF313338.toInt()
         )
 
         vg.translate(x.toFloat() + 496f, y.toFloat())
         vg.scale(2f, 2f)
 
-
-        for (key in elements) {
-            key.drawEditing(vg)
+        nanoVG(vg) {
+            for (key in elements) key.run {
+                draw()
+            }
         }
-
         val mouseX = (inputHandler.mouseX().toInt() - x - 496) / 2
         val mouseY = (inputHandler.mouseY().toInt() - y) / 2
 
         with(inputHandler) {
-            if (isAreaHovered(x + 496f, y.toFloat(), 512f, 480f)) when {
+            if (isAreaHovered(x + 496f, y.toFloat(), 496f, 384f)) when {
                 isFirstClicked -> onClicked(mouseX, mouseY)
                 isMouseDown -> onDragged(mouseX, mouseY)
                 isClicked -> onReleased()
@@ -105,17 +89,17 @@ class LayoutEditor(
             elementSettings = ConfigUtils.getClassOptions(lastSelected)
         }
 
-        var yOption = y + 64
+        vg.drawText(name, x.toFloat(), y + 17f, nameColor, 24f, Fonts.MEDIUM)
+        addButton.draw(vg, x.toFloat(), y + 48f, inputHandler)
+        selection?.let {
+            deleteButton.draw(vg, x + 240f, y + 48f, inputHandler)
+        }
+        var yOption = y + 96
         elementSettings?.forEach { option ->
             option.draw(vg, x, yOption, inputHandler)
             yOption += option.height + 16
         }
 
-        selection?.let {
-            deleteButton.draw(vg, x + 240f, y.toFloat(), inputHandler)
-            TopButtons.draw(it.selectedElements, vg, x, y, inputHandler)
-        }
-        addButton.draw(vg, x.toFloat(), y.toFloat(), inputHandler)
     }
 
     private fun onClicked(mouseX: Int, mouseY: Int) {
