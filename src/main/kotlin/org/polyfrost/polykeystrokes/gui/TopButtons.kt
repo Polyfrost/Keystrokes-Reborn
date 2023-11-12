@@ -3,10 +3,12 @@
 package org.polyfrost.polykeystrokes.gui
 
 import cc.polyfrost.oneconfig.config.core.OneKeyBind
-import cc.polyfrost.oneconfig.config.elements.BasicOption
+import cc.polyfrost.oneconfig.events.EventManager
+import cc.polyfrost.oneconfig.events.event.RawMouseEvent
 import cc.polyfrost.oneconfig.gui.OneConfigGui
 import cc.polyfrost.oneconfig.gui.elements.BasicButton
 import cc.polyfrost.oneconfig.gui.elements.text.TextInputField
+import cc.polyfrost.oneconfig.libs.eventbus.Subscribe
 import cc.polyfrost.oneconfig.libs.universal.UKeyboard
 import cc.polyfrost.oneconfig.utils.InputHandler
 import cc.polyfrost.oneconfig.utils.color.ColorPalette
@@ -14,20 +16,13 @@ import org.polyfrost.polykeystrokes.config.Element
 import org.polyfrost.polykeystrokes.config.KeyElement
 import org.polyfrost.polykeystrokes.config.MouseElement
 
-object TopButtons : BasicOption(null, null, "top buttons", "", "General", "", 2) {
-    private var addButton = BasicButton(128, 32, "Add Key", BasicButton.ALIGNMENT_CENTER, ColorPalette.PRIMARY)
-    private var deleteButton = BasicButton(128, 32, "Delete", BasicButton.ALIGNMENT_CENTER, ColorPalette.PRIMARY_DESTRUCTIVE)
-    var elements: List<Element> = emptyList()
-
-    override fun draw(vg: Long, x: Int, y: Int, inputHandler: InputHandler) {
-        addButton.draw(vg, x.toFloat(), y.toFloat(), inputHandler)
-        if (elements.isEmpty()) return
-        deleteButton.draw(vg, x.toFloat() + 160, y.toFloat(), inputHandler)
+object TopButtons {
+    fun draw(elements: Collection<Element>, vg: Long, x: Int, y: Int, inputHandler: InputHandler) {
         if (elements.size != 1) return
-        when (val element = elements[0]) {
+        when (val element = elements.first()) {
             is KeyElement -> {
-                KeyTextField.drawWithKeyBind(element, vg, x + 320, y, inputHandler)
-                KeyBindButton.drawWithKeyBind(element.keybind, vg, x + 608, y, inputHandler)
+                KeyTextField.drawWithKeyBind(element, vg, x, y + 96, inputHandler)
+                KeyBindButton.drawWithKeyBind(element.keybind, vg, x, y + 144, inputHandler)
             }
 
             is MouseElement -> {}
@@ -35,22 +30,19 @@ object TopButtons : BasicOption(null, null, "top buttons", "", "General", "", 2)
         }
     }
 
-    override fun getHeight() = 32
-
-    override fun keyTyped(char: Char, keyCode: Int) {
-        super.keyTyped(char, keyCode)
-        if (elements.size != 1) return
-        when (val element = elements[0]) {
-            is KeyElement -> {
-                KeyBindButton.isKeyTyped(element.keybind, keyCode)
-                KeyTextField.isKeyTyped(element, char, keyCode)
-            }
+    fun keyTyped(elements: Collection<Element>, char: Char, keyCode: Int): Boolean {
+        if (elements.size != 1) return false
+        when (val element = elements.first()) {
+            is KeyElement ->
+                return KeyTextField.isKeyTyped(element, char, keyCode)
+                    || KeyBindButton.isKeyTyped(element.keybind, keyCode)
         }
+        return false
     }
 }
 
 object KeyTextField {
-    private val textField = TextInputField(256, 32, "", false, false)
+    private val textField = TextInputField(128, 32, "", false, false)
     private var currentKey: KeyElement? = null
         set(value) {
             value ?: return
@@ -65,15 +57,17 @@ object KeyTextField {
         textField.draw(vg, x.toFloat(), y.toFloat(), inputHandler)
     }
 
-    fun isKeyTyped(key: KeyElement, char: Char, keyCode: Int) {
+    fun isKeyTyped(key: KeyElement, char: Char, keyCode: Int): Boolean {
+        if (!textField.isToggled) return false
         currentKey = key
         textField.keyTyped(char, keyCode)
         key.text = textField.input
+        return true
     }
 }
 
 private object KeyBindButton {
-    private val keyBindButton: BasicButton = BasicButton(256, 32, "", BasicButton.ALIGNMENT_JUSTIFIED, ColorPalette.SECONDARY)
+    private val keyBindButton: BasicButton = BasicButton(128, 32, "", BasicButton.ALIGNMENT_JUSTIFIED, ColorPalette.SECONDARY)
     private var currentKeyBind: OneKeyBind? = null
         set(value) {
             if (value == field) return
@@ -86,7 +80,15 @@ private object KeyBindButton {
         OneConfigGui.INSTANCE.allowClose = true
     }
 
+    @Subscribe
+    private fun onMouse(event: RawMouseEvent) {
+        if (keyBindButton.isToggled && event.state == 1) {
+            currentKeyBind?.addKey(event.button, true)
+        }
+    }
+
     init {
+        EventManager.INSTANCE.register(this)
         keyBindButton.setToggleable(true)
         keyBindButton.setClickAction {
             OneConfigGui.INSTANCE.allowClose = !keyBindButton.isToggled
@@ -114,10 +116,10 @@ private object KeyBindButton {
         else "None"
     }
 
-    fun isKeyTyped(keyBind: OneKeyBind, keyCode: Int) {
+    fun isKeyTyped(keyBind: OneKeyBind, keyCode: Int): Boolean {
         currentKeyBind = keyBind
 
-        if (!keyBindButton.isToggled) return
+        if (!keyBindButton.isToggled) return false
 
         when (keyCode) {
             UKeyboard.KEY_ESCAPE -> {
@@ -127,5 +129,6 @@ private object KeyBindButton {
 
             else -> keyBind.addKey(keyCode)
         }
+        return true
     }
 }

@@ -1,9 +1,6 @@
 package org.polyfrost.polykeystrokes.gui
 
-import cc.polyfrost.oneconfig.utils.dsl.drawCircle
-import cc.polyfrost.oneconfig.utils.dsl.drawHollowRoundedRect
-import cc.polyfrost.oneconfig.utils.dsl.drawRect
-import cc.polyfrost.oneconfig.utils.dsl.nanoVG
+import cc.polyfrost.oneconfig.utils.dsl.*
 import org.polyfrost.polykeystrokes.config.Element
 import org.polyfrost.polykeystrokes.util.MutableRectangle
 import org.polyfrost.polykeystrokes.util.MutableUnionRectangle
@@ -14,17 +11,11 @@ private const val RESIZE_BUTTON_COLOR = 0xC8008080.toInt()
 private const val SELECTED_COLOR = 0x3C008080
 
 class Selection(
-    val elements: Set<Element>, val position: MutableRectangle,
+    val selectedElements: Set<Element>,
+    val position: MutableRectangle = MutableUnionRectangle(selectedElements.map { it.position }),
 ) {
     constructor(element: Element) : this(setOf(element), element.position)
-    constructor(elements: List<Element>) : this(elements.toSet(), MutableUnionRectangle(elements.map { it.position }))
-
-    fun moveBy(x: Int, y: Int) {
-        for (key in elements) {
-            key.position.x += x
-            key.position.y += y
-        }
-    }
+    constructor(elements: List<Element>) : this(elements.toSet())
 
     fun isResizeButtonHovered(mouseX: Int, mouseY: Int): Boolean {
         val xDistance = position.xRight - mouseX
@@ -33,7 +24,7 @@ class Selection(
         return distanceSquared <= SCALE_BUTTON_RADIUS_SQUARED
     }
 
-    fun draw() = nanoVG(mcScaling = true) {
+    fun draw(vg: Long) = nanoVG(vg) {
         drawRect(
             x = position.x,
             y = position.y,

@@ -1,24 +1,19 @@
 package org.polyfrost.polykeystrokes.config
 
 import cc.polyfrost.oneconfig.config.annotations.Color
-import cc.polyfrost.oneconfig.config.annotations.Dropdown
 import cc.polyfrost.oneconfig.config.annotations.Slider
 import cc.polyfrost.oneconfig.config.annotations.Switch
 import cc.polyfrost.oneconfig.config.core.OneColor
 import cc.polyfrost.oneconfig.hud.Hud
-import cc.polyfrost.oneconfig.libs.universal.UGraphics.GL
 import cc.polyfrost.oneconfig.libs.universal.UMatrixStack
+import cc.polyfrost.oneconfig.utils.dsl.nanoVG
 import cc.polyfrost.oneconfig.utils.dsl.scale
 import cc.polyfrost.oneconfig.utils.dsl.translate
 import org.polyfrost.polykeystrokes.config.ModConfig.elements
 import org.polyfrost.polykeystrokes.util.Rectangle
 import org.polyfrost.polykeystrokes.util.UnionRectangle
-import org.polyfrost.polykeystrokes.util.TransformedVG
 
 class KeystrokesHud : Hud(true) {
-    @Dropdown(name = "Text Type", options = ["No Shadow", "Shadow", "Full Shadow"])
-    var textType = 0
-
     @Color(name = "Text Color")
     var textColor = OneColor(255, 255, 255, 255)
 
@@ -46,6 +41,9 @@ class KeystrokesHud : Hud(true) {
     @Slider(name = "Corner radius", min = 0f, max = 10f)
     var cornerRadius = 2f
 
+    @Slider(name = "Fade Time", min = 0f, max = 1000f)
+    var fadeTime = 500
+
     var keys = ArrayList<KeyElement>()
 
     @Suppress("USELESS_ELVIS") // getWidth and getHeight are called before keys init'd :skull:
@@ -59,22 +57,12 @@ class KeystrokesHud : Hud(true) {
     override fun draw(matrices: UMatrixStack, x: Float, y: Float, scale: Float, example: Boolean) {
         val keystrokesBox = box ?: return
 
-        GL.pushMatrix()
-        GL.translate(x, y, 0f)
-        GL.scale(scale, scale, 1f)
-        GL.translate(-keystrokesBox.x.toFloat(), -keystrokesBox.y.toFloat(), 0f)
-
-        val transformedVg = TransformedVG(mcScaling = true) {
+        for (key in elements) nanoVG(mcScaling = true) {
             translate(x, y)
             scale(scale, scale)
             translate(-keystrokesBox.x.toFloat(), -keystrokesBox.y.toFloat())
+            key.run { draw() }
         }
-
-        for (key in elements) {
-            key.draw(transformedVg)
-        }
-
-        GL.popMatrix()
     }
 
     override fun getWidth(scale: Float, example: Boolean): Float {

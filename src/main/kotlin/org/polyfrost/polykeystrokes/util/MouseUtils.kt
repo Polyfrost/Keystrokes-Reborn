@@ -1,6 +1,7 @@
 package org.polyfrost.polykeystrokes.util
 
 import cc.polyfrost.oneconfig.events.EventManager
+import cc.polyfrost.oneconfig.events.event.RawMouseEvent
 import cc.polyfrost.oneconfig.events.event.RenderEvent
 import cc.polyfrost.oneconfig.events.event.Stage
 import cc.polyfrost.oneconfig.libs.eventbus.Subscribe
@@ -21,9 +22,13 @@ object MouseUtils {
         EventManager.INSTANCE.register(this)
     }
 
-    @Suppress("unused")
     @Subscribe
-    fun onMouse(event: RenderEvent) {
+    private fun onRawMouseEvent(event: RawMouseEvent) {
+
+    }
+
+    @Subscribe
+    fun onRender(event: RenderEvent) {
         if (event.stage == Stage.END) return
         val mouseX = Platform.getMousePlatform().mouseX.toInt()
         val mouseY = Platform.getMousePlatform().mouseY.toInt()

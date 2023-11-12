@@ -1,16 +1,14 @@
 package org.polyfrost.polykeystrokes.gui
 
 import cc.polyfrost.oneconfig.libs.universal.UResolution
-import cc.polyfrost.oneconfig.utils.dsl.VG
-import cc.polyfrost.oneconfig.utils.dsl.drawRect
-import cc.polyfrost.oneconfig.utils.dsl.nanoVG
+import cc.polyfrost.oneconfig.utils.dsl.*
 import org.polyfrost.polykeystrokes.config.Element
 import org.polyfrost.polykeystrokes.config.ModConfig.elements
 import org.polyfrost.polykeystrokes.util.IntRectangle
 import org.polyfrost.polykeystrokes.util.MutableRectangle
 
 sealed interface DraggingState {
-    fun draw(mouseX: Int, mouseY: Int) = nanoVG(mcScaling = true) {
+    fun draw(vg: Long, mouseX: Int, mouseY: Int) = nanoVG(vg) {
         draw(mouseX, mouseY)
     }
 
@@ -21,7 +19,7 @@ class MovingState(
     mouseX: Int, mouseY: Int, selected: Selection,
 ) : DraggingState {
     private val selectedPos: MutableRectangle = selected.position
-    private val filteredKeys: List<Element> = elements - selected.elements
+    private val filteredKeys: List<Element> = elements - selected.selectedElements
     private val xOffset: Int = mouseX - selectedPos.x
     private val yOffset: Int = mouseY - selectedPos.y
     private val xCenters = SnappingLines(filteredKeys.map { it.position.xCenter })
@@ -57,7 +55,7 @@ class MovingState(
 
 class ResizingState(selection: Selection) : DraggingState {
     private val selectionPos = selection.position
-    private val filteredKeys: List<Element> = elements - selection.elements
+    private val filteredKeys: List<Element> = elements - selection.selectedElements
     private val xSides = SnappingLines(filteredKeys.flatMap { listOf(it.position.x, it.position.xRight) })
     private val ySides = SnappingLines(filteredKeys.flatMap { listOf(it.position.y, it.position.yBottom) })
     private var lineX: Int? = null
@@ -78,11 +76,13 @@ class SelectingState(
     private val clickedMouseX: Int,
     private val clickedMouseY: Int,
 ) : DraggingState {
-    fun getSelection(mouseX: Int, mouseY: Int): Selection {
+    fun getSelection(mouseX: Int, mouseY: Int): Selection? {
         val selectionBox = getSelectionBox(mouseX, mouseY)
-        return Selection(elements.filter { key ->
+        val selected = elements.filter { key ->
             key.position intersects selectionBox
-        })
+        }
+        if (selected.isEmpty()) return null
+        return Selection(selected)
     }
 
     private fun getSelectionBox(currentMouseX: Int, currentMouseY: Int): IntRectangle {

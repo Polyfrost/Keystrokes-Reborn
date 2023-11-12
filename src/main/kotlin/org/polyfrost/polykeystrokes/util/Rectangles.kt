@@ -47,6 +47,7 @@ interface MutableRectangle : Rectangle {
         set(value) {
             y = value - height
         }
+
 }
 
 class IntRectangle(

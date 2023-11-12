@@ -1,9 +1,9 @@
 package org.polyfrost.polykeystrokes.config
 
+import cc.polyfrost.oneconfig.utils.dsl.VG
 import org.polyfrost.polykeystrokes.util.IntRectangle
-import org.polyfrost.polykeystrokes.util.TransformedVG
 
 interface Element {
     val position: IntRectangle
-    fun draw(vg: TransformedVG)
+    fun VG.draw()
 }

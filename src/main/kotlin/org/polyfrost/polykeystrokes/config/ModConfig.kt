@@ -1,44 +1,38 @@
 package org.polyfrost.polykeystrokes.config
 
 import cc.polyfrost.oneconfig.config.Config
-import cc.polyfrost.oneconfig.config.annotations.Button
+import cc.polyfrost.oneconfig.config.annotations.CustomOption
 import cc.polyfrost.oneconfig.config.annotations.HUD
-import cc.polyfrost.oneconfig.config.annotations.Page
+import cc.polyfrost.oneconfig.config.core.ConfigUtils
 import cc.polyfrost.oneconfig.config.data.Mod
 import cc.polyfrost.oneconfig.config.data.ModType
-import cc.polyfrost.oneconfig.config.data.PageLocation
-import cc.polyfrost.oneconfig.libs.universal.UScreen
+import cc.polyfrost.oneconfig.config.elements.BasicOption
+import cc.polyfrost.oneconfig.config.elements.OptionPage
 import org.polyfrost.polykeystrokes.PolyKeystrokes
-import org.polyfrost.polykeystrokes.gui.KeyEditorPage
-import org.polyfrost.polykeystrokes.gui.KeyEditorUI
+import org.polyfrost.polykeystrokes.gui.LayoutEditor
+import java.lang.reflect.Field
 
 val settings get() = ModConfig.keystrokes
 
 object ModConfig : Config(Mod(PolyKeystrokes.NAME, ModType.UTIL_QOL, "/${PolyKeystrokes.MODID}.svg"), "${PolyKeystrokes.MODID}.json") {
+    @Transient
+    @CustomOption
+    private val layoutEditor = true
 
-    @HUD(name = "Keystrokes")
+    @HUD(name = "Settings")
     var keystrokes = KeystrokesHud()
 
-    var mouse = MouseElement()
+//    var mouse = MouseElement()
 
     val elements: List<Element>
-        get() = keystrokes.keys + mouse
-
-    @Button(name = "add key", text = "click")
-    fun addKey() {
-        keystrokes.keys.add(KeyElement())
-    }
-
-    @Button(name = "clear all", text = "clear")
-    fun clearKeys() {
-        keystrokes.keys.clear()
-    }
-
-    @Transient
-    @Page(name = "idkwtf", location = PageLocation.TOP)
-    val page = KeyEditorUI()
+        get() = keystrokes.keys /* + mouse */
 
     init {
         initialize()
+    }
+
+    override fun getCustomOption(field: Field, annotation: CustomOption, page: OptionPage, mod: Mod, migrate: Boolean): BasicOption? {
+        ConfigUtils.getSubCategory(page, "General", "").options.add(LayoutEditor("General", ""))
+        return null
     }
 }
