@@ -11,16 +11,16 @@ import cc.polyfrost.oneconfig.renderer.font.Fonts
 import cc.polyfrost.oneconfig.utils.InputHandler
 import cc.polyfrost.oneconfig.utils.color.ColorPalette
 import cc.polyfrost.oneconfig.utils.dsl.*
+import cc.polyfrost.oneconfig.utils.gui.GuiUtils
 import org.polyfrost.polykeystrokes.config.Element
 import org.polyfrost.polykeystrokes.config.KeyElement
 import org.polyfrost.polykeystrokes.config.ModConfig
 import org.polyfrost.polykeystrokes.config.ModConfig.elements
-import org.polyfrost.polykeystrokes.util.MouseUtils.isFirstClicked
 
 class LayoutEditor(
     category: String,
     subcategory: String,
-) : BasicOption(null, null, "Layout", "", category, subcategory, 1), IFocusable {
+) : BasicOption(null, null, "Layout", "", category, subcategory, 2), IFocusable {
     private val addButton = BasicButton(232, 32, "Add Key", BasicButton.ALIGNMENT_CENTER, ColorPalette.PRIMARY)
     private val deleteButton = BasicButton(232, 32, "Delete", BasicButton.ALIGNMENT_CENTER, ColorPalette.PRIMARY_DESTRUCTIVE)
     private var elementSettings: List<BasicOption>? = null
@@ -42,7 +42,7 @@ class LayoutEditor(
         }
     }
 
-    override fun getHeight() = 288
+    override fun getHeight() = 240
     override fun hasFocus() = true
 
     override fun draw(vg: Long, x: Int, y: Int, inputHandler: InputHandler) {
@@ -168,3 +168,5 @@ class LayoutEditor(
     }
 
 } // todo shift disable snap ctrl square remove multi-resize
+
+private val InputHandler.isFirstClicked get() = !GuiUtils.wasMouseDown() && isMouseDown

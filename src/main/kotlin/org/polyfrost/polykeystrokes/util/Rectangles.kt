@@ -47,7 +47,6 @@ interface MutableRectangle : Rectangle {
         set(value) {
             y = value - height
         }
-
 }
 
 class IntRectangle(
@@ -108,7 +107,7 @@ class MutableUnionRectangle(
     private val widthLimit: Int
         get() = scaledRectangles.maxOfOrNull { it.widthLimit } ?: 0
 
-    val heightLimit: Int
+    private val heightLimit: Int
         get() = scaledRectangles.maxOfOrNull { it.heightLimit } ?: 0
 }
 

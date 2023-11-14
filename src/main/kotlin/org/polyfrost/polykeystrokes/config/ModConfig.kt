@@ -3,6 +3,7 @@ package org.polyfrost.polykeystrokes.config
 import cc.polyfrost.oneconfig.config.Config
 import cc.polyfrost.oneconfig.config.annotations.CustomOption
 import cc.polyfrost.oneconfig.config.annotations.HUD
+import cc.polyfrost.oneconfig.config.annotations.Switch
 import cc.polyfrost.oneconfig.config.core.ConfigUtils
 import cc.polyfrost.oneconfig.config.data.Mod
 import cc.polyfrost.oneconfig.config.data.ModType
@@ -19,13 +20,21 @@ object ModConfig : Config(Mod(PolyKeystrokes.NAME, ModType.UTIL_QOL, "/${PolyKey
     @CustomOption
     private val layoutEditor = true
 
+    @Switch(name = "Mouse Tracker")
+    var showMouseTracker = false
+
     @HUD(name = "Settings")
     var keystrokes = KeystrokesHud()
 
-//    var mouse = MouseElement()
+    var mouse = MouseElement()
 
     val elements: List<Element>
-        get() = keystrokes.keys /* + mouse */
+        get() =
+            if (showMouseTracker) {
+                keystrokes.keys + mouse
+            } else {
+                keystrokes.keys
+            }
 
     init {
         initialize()

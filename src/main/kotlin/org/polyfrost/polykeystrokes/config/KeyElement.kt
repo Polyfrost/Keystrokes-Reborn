@@ -60,7 +60,7 @@ class KeyElement : Element {
         drawCenteredText(
             text = text,
             x = position.xCenterFloat,
-            y = position.yCenterFloat,
+            y = position.yCenterFloat + 1f,
             color = textColor,
             size = 12,
             font = Fonts.MEDIUM
