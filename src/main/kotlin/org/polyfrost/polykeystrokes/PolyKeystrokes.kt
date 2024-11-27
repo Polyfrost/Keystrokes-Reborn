@@ -11,9 +11,9 @@ import org.polyfrost.polykeystrokes.config.ModConfig
     modLanguageAdapter = "cc.polyfrost.oneconfig.utils.KotlinLanguageAdapter"
 )
 object PolyKeystrokes {
-    const val MODID = "@ID@"
-    const val NAME = "@NAME@"
-    const val VERSION = "@VER@"
+    const val MODID = "@MOD_ID@"
+    const val NAME = "@MOD_NAME@"
+    const val VERSION = "@MOD_VERSION@"
 
     @Mod.EventHandler
     fun onInit(event: FMLInitializationEvent) {
